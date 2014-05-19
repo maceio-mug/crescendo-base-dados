@@ -608,6 +608,84 @@
 
         <section data-markdown>
           <script type="text/template">
+            # Testando sua base de dados
+            ## Capítulo 3
+          </script>
+        </section>
+
+        <section data-markdown>
+          <script type="text/template">
+            ## Testando sua base de dados
+
+            Técnica \#1:
+
+            - Testes unitários clássicos.
+            - Ao final de cada teste, uma coleção do banco estará "preparada".
+            - Comparar coleção do teste com a "coleção esperada".
+
+            &nbsp;
+
+            Ferramentas a disposição:
+
+            - `mongoimport` e `mongoexport`.
+            - Scripts para o shell do MongoDB.
+            - ...
+          </script>
+        </section>
+
+        <section data-markdown>
+          <script type="text/template">
+            ## Testando sua base de dados
+
+            Técnica \#2:
+
+            - Especificar schemas para sua base de dados.
+            - Executar sua aplicação com valores pseudo-aleatórios.
+            - Validar todos os documentos de acordo com o schema especificado.
+          </script>
+        </section>
+
+        <section data-markdown>
+          <script type="text/template">
+            ## Testando sua base de dados
+
+            Técnica \#2:
+
+            Exemplo de schema:
+
+            ```json
+            {
+                "$schema": "http://json-schema.org/draft-04/schema#",
+                "type": "object",
+                "properties": {
+                    "name": { "type": "string" },
+                    "price": {
+                        "type": "number",
+                        "minimum": 0,
+                        "exclusiveMinimum": true
+                    }
+                },
+                "required": ["id", "name", "price"]
+            }
+            ```
+          </script>
+        </section>
+
+        <section data-markdown>
+          <script type="text/template">
+            ## Testando sua base de dados
+
+            Técnica \#2:
+
+            **Lembrar** de salvar a semente do gerador de números aleatórios
+            usada para executar os testes, assim você vai poder reproduzí-los
+            quando um erro for detectado.
+          </script>
+        </section>
+
+        <section data-markdown>
+          <script type="text/template">
+            http://www.meetup.com/Maceio-MongoDB-User-Group/
           </script>
         </section>
 
