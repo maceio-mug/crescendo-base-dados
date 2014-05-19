@@ -523,6 +523,91 @@
 
         <section data-markdown>
           <script type="text/template">
+            ## Exemplo \#2
+
+            Problema:
+
+            - Seu produto possui um sistema de login.
+            - Armazena hashs MD5 das senhas.
+            - A partir de agora, deve migrar para SHA1.
+            - Por motivos de simplicidade, vamos ignorar o salt.
+          </script>
+        </section>
+
+        <section data-markdown>
+          <script type="text/template">
+            ## Exemplo \#2
+
+            - Similar ao problema anterior, então vamos ignorar as similaridades
+              e nos concentrar nas diferenças.
+            - Consideremos que a parte de implementar um modelo extensível que
+              suporte MD5 e SHA1 já foi feita, nos moldes do exemplo anterior.
+            - Diferente do exemplo anterior, nós só temos acesso ao dados
+              originais (senha) quando o usuário faz login.
+            - Conversão não pode ser realizada em massa e nós só podemos
+              abandonar o suporte ao modelo antigo quando todos os usuários
+              fizerem login novamente (possivelmente nunca).
+            - Mas o sistema é também mais fácil (não precisa computar o índice
+              de algum array).
+          </script>
+        </section>
+
+        <section data-markdown>
+          <script type="text/template">
+            ## Exemplo \#2
+
+            Solução (durante o login):
+
+            ```javascript
+            md5 = md5sum(passwd);
+            sha1 = sha1sum(passwd);
+            query_doc = {"_id": user, "pass.modo": 0, "pass.sum": md5};
+            update_doc = {"$set": {"pass": {"modo": 1, "sum": sha1}}};
+            db.coll.update(query_doc, update_doc);
+            ```
+          </script>
+        </section>
+
+        <section data-markdown>
+          <script type="text/template">
+            ## Exemplo \#2
+
+            **Cuidado** com as tentativas de otimização:
+
+            ---
+
+            É importante evitar a construção a seguir, pois a ordem dos atributos
+            importa:
+
+            ```javascript
+            query_doc = {"_id": user, "pass": {"modo": 0, "sum": md5}};
+            ```
+
+            ---
+
+            É importante atualizar a senha somente do usuário que está tentando
+            fazer o login, pois mesmo que o hash da senha de dois usuários
+            apresente colisão sob o MD5, elas podem não colidir em modo SHA1.
+
+            ```javascript
+            query_doc = {"_id": user/* ... */};
+            db.coll.update(/* ... */, /* ... */, {"multi": false});
+            ```
+          </script>
+        </section>
+
+        <section data-markdown>
+          <script type="text/template">
+            # Não acaba aqui
+
+            Faça uma análise de comos os atributos afetados são usados na sua
+            aplicação e como os operadores usados se comportam para os tipos no
+            modelo antigo e no novo modelo.
+          </script>
+        </section>
+
+        <section data-markdown>
+          <script type="text/template">
           </script>
         </section>
 
