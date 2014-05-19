@@ -151,8 +151,8 @@
             ## Create
 
             ```javascript
-            db.collection.insert({"termo": "dia", "tags": ["triste"]})
-            db.collection.insert([{"termo": "tarde"}, {"termo": "noite"}]) // BULK
+            db.collection.insert({"termo": "dia", "tags": ["triste"]});
+            db.collection.insert([{"termo": "tarde"}, {"termo": "noite"}]); /* BULK */
             ```
           </script>
         </section>
@@ -174,14 +174,14 @@
             ### Read
 
             ```javascript
-            db.coll.findOne({"tags": "triste"})
+            db.coll.findOne({"tags": "triste"});
             ```
 
             Possíveis retornos:
 
             ```javascript
             {"_id" : ObjectId("123..."), "termo": "dia", "tags": "triste"}
-            {"_id" : ObjectId("124..."), "termo": "dia", "tags": ["triste"]} // ARRAY
+            {"_id" : ObjectId("124..."), "termo": "dia", "tags": ["triste"]} /* ARRAY */
             ```
           </script>
         </section>
@@ -192,8 +192,8 @@
             ### Read
 
             ```javascript
-            db.coll.findOne({"idade": {"$gte": 18, "$lt": 30}})
-            db.coll.findOne({"$or": [{"idade": {"$lt": 18}}, {"idade": {"$gte": 30}}]})
+            db.coll.findOne({"idade": {"$gte": 18, "$lt": 30}});
+            db.coll.findOne({"$or": [{"idade": {"$lt": 18}}, {"idade": {"$gte": 30}}]});
             ```
           </script>
         </section>
@@ -220,11 +220,11 @@
             ## C**R**UD
             ### Read
 
-            Campos específicos.
+            Recuperando atributos específicos.
 
             ```javascript
-            db.coll.findOne({}, {"idade": true})
-            db.coll.findOne({}, {"idade": true, "_id": false})
+            db.coll.findOne({}, {"idade": true});
+            db.coll.findOne({}, {"idade": true, "_id": false});
             ```
           </script>
         </section>
@@ -235,8 +235,8 @@
             ### Read
 
             ```javascript
-            cur = db.coll.find({"idade": {"$gte": 18}})
-            for (i = 0;i < cur.count();++i) {process(cur.next())}
+            cur = db.coll.find({"idade": {"$gte": 18}});
+            for (i = 0;i < cur.count();++i) {process(cur.next())};
             ```
           </script>
         </section>
@@ -247,7 +247,7 @@
             ### Read
 
             ```javascript
-            db.coll.find().sort({"nome": 1, "idade": -1}).skip(2).limit(10)
+            db.coll.find().sort({"nome": 1, "idade": -1}).skip(2).limit(10);
             ```
 
             Ordem:
@@ -264,7 +264,7 @@
             ### Delete
 
             ```javascript
-            db.coll.remove(query_doc)
+            db.coll.remove(query_doc);
             ```
 
             **Cuidado**: `{"multi": true}` por padrão!
@@ -277,9 +277,9 @@
             ### Update
 
             ```javascript
-            db.coll.update(query_doc, {"$set": {"resposta": 42}})
-            db.coll.update(query_doc, {"$unset": {"pergunta": null}})
-            db.coll.update(query_doc, {"$inc": {"score": 0.5}})
+            db.coll.update(query_doc, {"$set": {"resposta": 42}});
+            db.coll.update(query_doc, {"$unset": {"pergunta": null}});
+            db.coll.update(query_doc, {"$inc": {"score": 0.5}});
             ```
           </script>
         </section>
@@ -304,6 +304,220 @@
           <script type="text/template">
             # Crescendo sua base de dados
             ## Capítulo 2!
+          </script>
+        </section>
+
+        <section data-markdown>
+          <script type="text/template">
+            ## Exemplo \#1
+
+            Problema:
+
+            - Seu produto possui um sistema de comentários.
+            - Até ontem somente texto puro era aceito.
+            - A partir de agora deve suportar também MarkDown.
+            - Dados antigos podiam estar usando caracteres que têm significado
+              especial no modo MarkDown.
+          </script>
+        </section>
+
+        <section data-markdown>
+          <script type="text/template">
+            ## Exemplo \#1
+
+            Modelo de dados atual:
+
+            `db.entries`:
+
+            ```javascript
+            {
+                "_id": "...",
+                "comments": [
+                    {"author": "...", "body": "Texto puro"},
+                    {"author": "...", "body": "Texto puro"},
+                    {"author": "...", "body": "Texto puro"}
+                ]
+            }
+            ```
+          </script>
+        </section>
+
+        <section data-markdown>
+          <script type="text/template">
+            ## Exemplo \#1
+
+            Proposta de novo modelo:
+
+            ```javascript
+            {
+                "_id": "...",
+                "comments": [
+                    {"author": "...", "body": {"modo": 0, "content": "Texto puro"}},
+                    {"author": "...", "body": {"modo": 1, "content": "Texto MarkDown"}}
+                ]
+            }
+            ```
+          </script>
+        </section>
+
+        <section data-markdown>
+          <script type="text/template">
+            ## Exemplo \#1
+
+            Estratégia para migração:
+
+            1. Modificar aplicação para suportar um modelo de dados misto
+               (modelo de dados antigo e modelo de dados novo).
+            2. Modificar operações de inserção para usar o novo modelo de dados.
+            3. Converter os dados no modelo de dados antigo para o novo modelo.
+            4. Abandonar o suporte para o modelo de dados antigo (em benefício
+               de um código-fonte simples e de fácil manutenção).
+          </script>
+        </section>
+
+        <section data-markdown>
+          <script type="text/template">
+            ## Exemplo \#1
+            ### 1. Suportar um modelo de dados misto
+
+            Aplicação consulta comentários no banco de dados da mesma forma que
+            antes, mas o código de renderizar muda.
+
+            ```javascript
+            if (typeof comment == 'string') {
+                /* old code */
+            } else /* typeof comment == 'object' */ {
+                if (comment.modo == 0) {
+                    comment = comment.content;
+                    /* old code */
+                } else if (comment.modo == 1) {
+                    /* render MarkDown */
+                }
+            }
+            ```
+          </script>
+        </section>
+
+        <section data-markdown>
+          <script type="text/template">
+            ## Exemplo \#1
+            ### 2. Modificar operações de inserção
+
+            ```javascript
+            /* Antes: */
+            new_comment = {/*...*/"body": "content": "texto"};
+
+            /* Agora: */
+            new_comment = {/*...*/"body": {"modo": 0, "content": "texto"}};
+
+
+            db.coll.update(query, {"$push": {"comments": new_comment}});
+            ```
+          </script>
+        </section>
+
+        <section data-markdown>
+          <script type="text/template">
+            ## Exemplo \#1
+            ### 3. Converter os dados para o novo modelo
+
+            1. http://docs.mongodb.org/manual/reference/operator/query/
+            2. `{ "field": { "$type": BSON_type } }`
+            3. http://docs.mongodb.org/manual/reference/bson-types/
+            4. `String: 2`
+          </script>
+        </section>
+
+        <section data-markdown>
+          <script type="text/template">
+            ## Exemplo \#1
+            ### 3. Converter os dados para o novo modelo
+
+            ```javascript
+            query_doc = {"comments.body": {$type: 2}};
+            db.coll.find(query_doc);
+
+
+            /* Ideal: */
+            update_doc = {"$set":
+                {"comments.$.body": {"modo": 0, "content": "$comments.$.body"}}
+            };
+            db.coll.update(query_doc, update_doc);
+            ```
+          </script>
+        </section>
+
+        <section data-markdown>
+          <script type="text/template">
+            ## Exemplo \#1
+            ### 3. Converter os dados para o novo modelo
+
+            ```javascript
+            update_doc = {"$set":
+                {"comments.$.body": {"modo": 0, "content": "$comments.$.body"}}
+            };
+            ```
+
+            Mas você não pode se referir ao próprio documento em uma atualização
+            (**ainda**).
+
+            Veja https://jira.mongodb.org/browse/SERVER-3089 e
+            https://jira.mongodb.org/browse/SERVER-2702 . **Vote** nos bugs para
+            que o problema receba mais atenção.
+          </script>
+        </section>
+
+        <section data-markdown>
+          <script type="text/template">
+            ## Exemplo \#1
+            ### 3. Converter os dados para o novo modelo
+
+            Gambiarra/workaround até lá.
+
+            ```javascript
+            db.coll.find(query_doc, {"comments.$": true}).forEach(function(doc) {
+                comment = doc.comments[0];
+                query_doc2 = {"_id": doc._id, "comments": comment};
+                /* Cuidado: naive deep copy */
+                new_comment = JSON.parse(JSON.stringify(comment));
+                new_comment.body = {"modo": 0, "content": comment.body};
+                update_doc = {"$set": {"comments.$": new_comment}};
+                db.coll.update(query_doc2, update_doc);
+            });
+            ```
+          </script>
+        </section>
+
+        <section data-markdown>
+          <script type="text/template">
+            ## Exemplo \#1
+            ### 3. Converter os dados para o novo modelo
+
+            **Atenção**: Deve executar enquanto:
+
+            ```javascript
+            db.coll.findOne(query_doc) != null;
+            ```
+          </script>
+        </section>
+
+        <section data-markdown>
+          <script type="text/template">
+            ## Exemplo \#1
+            ### 4. Abandonar o suporte para o modelo de dados antigo
+            ```javascript
+            /*if (typeof comment == 'string') {
+                // old code
+            } else*/ /* typeof comment == 'object' */ {
+                if (comment.modo == 0) {
+                    /* TODO: refatorar */
+                    comment = comment.content;
+                    /* old code */
+                } else if (comment.modo == 1) {
+                    /* render MarkDown */
+                }
+            }
+            ```
           </script>
         </section>
 
